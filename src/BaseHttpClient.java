@@ -47,7 +47,7 @@ public class BaseHttpClient {
             String address,
             HashMap<String, String> body,
             HashMap<String, String> payload,
-            String inputUrl) throws IOException {
+            String inputUrl) {
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             if (payload != null) {
                 String queryParams = buildQueryParams(payload);
@@ -56,7 +56,6 @@ public class BaseHttpClient {
             if (inputUrl != null) {
                 address = address.replace("%url%", inputUrl);
             }
-
             HttpPost request  = new HttpPost(address);
             if (body != null) {
                 request.setEntity(buildJsonBody(body));
@@ -66,11 +65,14 @@ public class BaseHttpClient {
             JSONObject responseJson = responseToJson(response.getEntity());
             return new ResponseData(response.getStatusLine().getStatusCode(), responseJson);
         }
+        catch (IOException exc) {
+            return new ResponseData(0, null);
+        }
     }
     public static ResponseData get(
             String address,
             HashMap<String, String> payload,
-            String inputUrl) throws IOException {
+            String inputUrl) {
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             if (payload != null) {
                 String queryParams = buildQueryParams(payload);
@@ -86,6 +88,9 @@ public class BaseHttpClient {
             JSONObject responseJson = responseToJson(response.getEntity());
             return new ResponseData(
                     response.getStatusLine().getStatusCode(), responseJson);
+        }
+        catch (IOException exc) {
+            return new ResponseData(0, null);
         }
     }
 }

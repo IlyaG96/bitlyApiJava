@@ -13,4 +13,8 @@ public class ResponseData {
     public JSONObject getResponseJson() {
         return responseJson;
     }
+
+    public boolean hasResponseJson() {
+        return responseJson != null;
+    }
 }
