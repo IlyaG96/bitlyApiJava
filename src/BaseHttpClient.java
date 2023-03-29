@@ -25,7 +25,6 @@ public class BaseHttpClient {
         }
         return null;
     }
-
     private static StringEntity buildJsonBody(HashMap<String, String> bodyContent) {
         StringBuilder body = new StringBuilder("{");
         for (Map.Entry<String, String> map : bodyContent.entrySet()) {
@@ -43,26 +42,57 @@ public class BaseHttpClient {
 
         return body.toString();
     }
+    private static String setQuery(HashMap<String, String> payload, String address) {
+        if (payload != null) {
+            String queryParams = buildQueryParams(payload);
+            address += queryParams;
+        } return address;
+    }
+    private static String replaceUrl(String inputUrl, String address) {
+        if (inputUrl != null) {
+            address = address.replace("%url%", inputUrl);
+        }
+        return address;
+    }
+
+    private static HttpGet createRequest(String address,
+                                         HashMap<String, String> payload,
+                                         String inputUrl) {
+
+        address = setQuery(payload, replaceUrl(inputUrl, address));
+        HttpGet request  = new HttpGet(address);
+        request.setHeader("Authorization", Config.bitlyToken);
+        return request;
+
+    }
+    private static HttpPost createRequest(String address,
+                                             HashMap<String, String> body,
+                                             HashMap<String, String> payload,
+                                             String inputUrl) {
+
+        address = setQuery(payload, replaceUrl(inputUrl, address));
+        HttpPost request  = new HttpPost(address);
+        if (body != null) {
+            request.setEntity(buildJsonBody(body));
+        }
+        request.setHeader("Authorization", Config.bitlyToken);
+
+        return request;
+    }
+
     public static ResponseData post(
             String address,
             HashMap<String, String> body,
             HashMap<String, String> payload,
             String inputUrl) {
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-            if (payload != null) {
-                String queryParams = buildQueryParams(payload);
-                address += queryParams;
-            }
-            if (inputUrl != null) {
-                address = address.replace("%url%", inputUrl);
-            }
-            HttpPost request  = new HttpPost(address);
-            if (body != null) {
-                request.setEntity(buildJsonBody(body));
-            }
-            request.setHeader("Authorization", Config.bitlyToken);
+            HttpPost request = createRequest(address, body, payload, inputUrl);
             CloseableHttpResponse response = httpClient.execute(request);
+            if (!Validators.isStatusCodeOk(response.getStatusLine().getStatusCode())) {
+                throw new IOException();
+            }
             JSONObject responseJson = responseToJson(response.getEntity());
+
             return new ResponseData(response.getStatusLine().getStatusCode(), responseJson);
         }
         catch (IOException exc) {
@@ -74,18 +104,14 @@ public class BaseHttpClient {
             HashMap<String, String> payload,
             String inputUrl) {
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-            if (payload != null) {
-                String queryParams = buildQueryParams(payload);
-                address += queryParams;
-            }
-            if (inputUrl != null) {
-                address = address.replace("%url%", inputUrl);
-            }
-            HttpGet request = new HttpGet(address);
-
-            request.setHeader("Authorization", Config.bitlyToken);
+            HttpGet request = createRequest(address, payload, inputUrl);
             CloseableHttpResponse response = httpClient.execute(request);
+
+            if (!Validators.isStatusCodeOk(response.getStatusLine().getStatusCode())) {
+                throw new IOException();
+            }
             JSONObject responseJson = responseToJson(response.getEntity());
+
             return new ResponseData(
                     response.getStatusLine().getStatusCode(), responseJson);
         }

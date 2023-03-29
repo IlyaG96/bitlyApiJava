@@ -1,15 +1,24 @@
 import java.io.IOException;
 
 public class Main {
-    public static void main(String[] args) throws IOException {
-        String inputUrl = "https://vk.com";
-        if (Validators.checkIsBitlink(inputUrl, Addresses.isBitlink))
-            System.out.println("Общее количество переходов: "+ BitlyMethods.countClicks(inputUrl));
+    public static void main(String[] args) {
+        String inputUrl = "https://google.com";
+        String answer;
+        try {
+        if (Validators.checkIsBitlink(inputUrl, Addresses.isBitlink)) {
+            answer = "Количество переходов " + BitlyMethods.countClicks(inputUrl);
+        }
         else if (Validators.checkIsLink(inputUrl)) {
-            System.out.println("Сокращенная ссылка " + BitlyMethods.shortUrl(inputUrl));
+            answer = "Сокращенная ссылка " + BitlyMethods.shortUrl(inputUrl);
         }
         else {
-            System.out.println("Ссылка " + inputUrl + " не является корректной");
+            answer = "Ссылка " + inputUrl + " не является корректной";
         }
+        } catch (IOException exc) {
+            answer = "Что-то пошло не так, проверьте интернет-соединение";
+        }
+        System.out.println(answer);
+
+
     }
 }
